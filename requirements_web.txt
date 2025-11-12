@@ -1,0 +1,24 @@
+# Web App Requirements (Streamlit)
+# Install with: pip install -r requirements_web.txt
+
+# Web Framework
+streamlit>=1.28.0
+
+# Computer Vision & Hand Tracking (reuse from main requirements)
+opencv-python>=4.8.0
+cvzone>=1.6.1
+mediapipe>=0.10.0
+
+# Machine Learning (reuse from main requirements)
+tensorflow>=2.13.0
+keras>=2.13.0
+numpy>=1.24.0
+
+# Image Processing
+Pillow>=10.0.0
+
+# Text-to-Speech for Web
+gTTS>=2.4.0
+
+# Optional: For better audio handling
+pydub>=0.25.1
