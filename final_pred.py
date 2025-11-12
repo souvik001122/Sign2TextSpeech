@@ -18,6 +18,9 @@ from PIL import Image, ImageTk
 
 offset=29
 
+# Use relative paths
+MODEL_PATH = os.path.join(os.path.dirname(__file__), 'cnn8grps_rad1_model.h5')
+WHITE_IMAGE_PATH = os.path.join(os.path.dirname(__file__), 'white.jpg')
 
 os.environ["THEANO_FLAGS"] = "device=cuda, assert_no_cpu_op=True"
 
@@ -29,7 +32,7 @@ class Application:
     def __init__(self):
         self.vs = cv2.VideoCapture(0)
         self.current_image = None
-        self.model = load_model('cnn8grps_rad1_model.h5')
+        self.model = load_model(MODEL_PATH)
         self.speak_engine=pyttsx3.init()
         self.speak_engine.setProperty("rate",100)
         voices=self.speak_engine.getProperty("voices")
@@ -143,7 +146,7 @@ class Application:
                     x, y, w, h=map['bbox']
                     image = cv2image_copy[y - offset:y + h + offset, x - offset:x + w + offset]
 
-                    white = cv2.imread("white.jpg")
+                    white = cv2.imread(WHITE_IMAGE_PATH)
                     # img_final=img_final1=img_final2=0
                     if image.all:
                         handz = hd2.findHands(image, draw=False, flipType=True)
@@ -223,7 +226,7 @@ class Application:
                 x, y, w, h = hand['bbox']
                 image = cv2image_copy[y - offset:y + h + offset, x - offset:x + w + offset]
 
-                white = cv2.imread("C:\\Users\\devansh raval\\PycharmProjects\\pythonProject\\white.jpg")
+                white = cv2.imread(WHITE_IMAGE_PATH)
                 # img_final=img_final1=img_final2=0
 
                 handz = hd2.findHands(image, draw=False, flipType=True)
