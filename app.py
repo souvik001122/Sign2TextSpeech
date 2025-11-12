@@ -240,11 +240,21 @@ if run:
         st.error("Cannot access webcam. Please check permissions.")
         st.stop()
     
+    # Performance optimization: process every Nth frame
+    frame_skip = 2  # Process every 2nd frame
+    frame_count = 0
+    
     while run:
         ret, frame = cap.read()
         if not ret:
             st.error("Failed to grab frame")
             break
+        
+        frame_count += 1
+        
+        # Skip frames for performance
+        if frame_count % frame_skip != 0:
+            continue
         
         frame = cv2.flip(frame, 1)
         hands, _ = hd.findHands(frame, draw=False, flipType=True)
