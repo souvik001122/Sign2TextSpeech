@@ -1,0 +1,23 @@
+# Sign Language to Text and Speech - Python Dependencies
+
+# Computer Vision & Hand Tracking
+opencv-python>=4.8.0
+cvzone>=1.6.1
+mediapipe>=0.10.0
+
+# Machine Learning
+tensorflow>=2.13.0
+keras>=2.13.0
+numpy>=1.24.0
+
+# Text-to-Speech
+pyttsx3>=2.90
+
+# GUI
+Pillow>=10.0.0
+
+# Spell Checking (for suggestions)
+pyenchant>=3.2.2
+
+# Optional: If using GPU
+# tensorflow-gpu>=2.13.0
