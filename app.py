@@ -247,7 +247,7 @@ if run:
             break
         
         frame = cv2.flip(frame, 1)
-        hands = hd.findHands(frame, draw=False, flipType=True)
+        hands, _ = hd.findHands(frame, draw=False, flipType=True)
         
         skeleton_img = np.ones((400, 400, 3), np.uint8) * 255
         
@@ -259,7 +259,7 @@ if run:
             image = frame[max(0, y - offset):y + h + offset, max(0, x - offset):x + w + offset]
             
             if image.size > 0:
-                handz = hd2.findHands(image, draw=False, flipType=True)
+                handz, _ = hd2.findHands(image, draw=False, flipType=True)
                 
                 if handz:
                     # Create skeleton
