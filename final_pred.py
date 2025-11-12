@@ -333,8 +333,13 @@ class Application:
 
 
     def speak_fun(self):
-        self.speak_engine.say(self.str)
-        self.speak_engine.runAndWait()
+        import pyttsx3
+        speak_engine = pyttsx3.init()
+        speak_engine.setProperty("rate", 100)
+        voices = speak_engine.getProperty("voices")
+        speak_engine.setProperty("voice", voices[0].id)
+        speak_engine.say(self.str)
+        speak_engine.runAndWait()
 
 
     def clear_fun(self):
