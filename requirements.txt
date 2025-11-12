@@ -12,12 +12,16 @@ numpy>=1.24.0
 
 # Text-to-Speech
 pyttsx3>=2.90
+gTTS>=2.4.0
 
 # GUI
 Pillow>=10.0.0
 
 # Spell Checking (for suggestions)
 pyenchant>=3.2.2
+
+# Web Framework (for Streamlit deployment)
+streamlit>=1.28.0
 
 # Optional: If using GPU
 # tensorflow-gpu>=2.13.0
