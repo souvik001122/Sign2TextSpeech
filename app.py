@@ -25,6 +25,20 @@ st.set_page_config(
 MODEL_PATH = os.path.join(os.path.dirname(__file__), 'cnn8grps_rad1_model.h5')
 WHITE_IMAGE_PATH = os.path.join(os.path.dirname(__file__), 'white.jpg')
 
+# Auto-download model if not present (for cloud deployment)
+if not os.path.exists(MODEL_PATH):
+    import urllib.request
+    st.info("⏳ Downloading model file... This may take a minute.")
+    try:
+        # Download from GitHub repository raw file or a hosted location
+        # You'll need to upload the model to GitHub releases or a public URL
+        MODEL_URL = "https://github.com/souvik001122/Sign2TextSpeech/releases/download/v1.0/cnn8grps_rad1_model.h5"
+        urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
+        st.success("✅ Model downloaded successfully!")
+    except Exception as e:
+        st.error(f"❌ Model file not found at {MODEL_PATH}. Please download it using download_assets.py")
+        st.stop()
+
 # Initialize session state
 if 'sentence' not in st.session_state:
     st.session_state.sentence = ""
