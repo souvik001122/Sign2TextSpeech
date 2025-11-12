@@ -188,6 +188,14 @@ with st.sidebar:
     """)
     
     st.markdown("---")
+    st.markdown("### ASL Alphabet Reference")
+    st.markdown("**Make these hand gestures:**")
+    
+    # Display ASL reference image from README
+    asl_image_url = "https://user-images.githubusercontent.com/99630855/201489493-585ffe5c-f460-402a-b558-0d03370b4f92.jpg"
+    st.image(asl_image_url, caption="American Sign Language Alphabet", use_container_width=True)
+    
+    st.markdown("---")
     st.markdown("### About")
     st.markdown("""
     This app recognizes American Sign Language (ASL) 
