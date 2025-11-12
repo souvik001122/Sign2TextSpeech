@@ -6,7 +6,16 @@ import os, os.path
 from keras.models import load_model
 import traceback
 
+# Configuration - Update these paths for your setup
+TEST_DATA_ROOT = os.path.join(os.path.dirname(__file__), "test_data")
+WHITE_IMAGE_PATH = os.path.join(os.path.dirname(__file__), "white.jpg")
 
+# Create test data directory structure if needed
+if not os.path.exists(TEST_DATA_ROOT):
+    os.makedirs(TEST_DATA_ROOT)
+    for subdir in ["Gray_imgs", "Gray_imgs_with_drawing", "Binary_imgs"]:
+        for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+            os.makedirs(os.path.join(TEST_DATA_ROOT, subdir, letter), exist_ok=True)
 
 #model = load_model('C:\\Users\\devansh raval\\PycharmProjects\\pythonProject\\cnn9.h5')
 
@@ -14,24 +23,20 @@ capture = cv2.VideoCapture(0)
 
 hd = HandDetector(maxHands=1)
 hd2 = HandDetector(maxHands=1)
-# #training data
-# count = len(os.listdir("D://sign2text_dataset_2.0/Binary_imgs//A"))
 
-#testing data
-count = len(os.listdir("D://test_data_2.0//Gray_imgs//A"))
-
-
+# Initialize count for first letter
 p_dir = "A"
 c_dir = "a"
+gray_imgs_path = os.path.join(TEST_DATA_ROOT, "Gray_imgs", p_dir)
+count = len(os.listdir(gray_imgs_path)) if os.path.exists(gray_imgs_path) else 0
 
 offset = 30
 step = 1
 flag=False
 suv=0
-#C:\Users\devansh raval\PycharmProjects\pythonProject
-white=np.ones((400,400),np.uint8)*255
-cv2.imwrite("C:\\Users\\devansh raval\\PycharmProjects\\pythonProject\\white.jpg",white)
 
+white=np.ones((400,400),np.uint8)*255
+cv2.imwrite(WHITE_IMAGE_PATH, white)
 
 while True:
     try:
@@ -87,7 +92,7 @@ while True:
             hand = hands[0]
             x, y, w, h = hand['bbox']
             image = frame[y - offset:y + h + offset, x - offset:x + w + offset]
-            white = cv2.imread("C:\\Users\\devansh raval\\PycharmProjects\\pythonProject\\white.jpg")
+            white = cv2.imread(WHITE_IMAGE_PATH)
             # img_final=img_final1=img_final2=0
             handz = hd2.findHands(image, draw=False, flipType=True)
             if handz:
@@ -189,11 +194,9 @@ while True:
                 p_dir="A"
                 c_dir="a"
             flag = False
-            # #training data
-            # count = len(os.listdir("D://sign2text_dataset_2.0/Binary_imgs//" + p_dir + "//"))
-
-            # test data
-            count = len(os.listdir("D://test_data_2.0/Gray_imgs//" + p_dir + "//"))
+            # Update count for new directory
+            gray_imgs_path = os.path.join(TEST_DATA_ROOT, "Gray_imgs", p_dir)
+            count = len(os.listdir(gray_imgs_path)) if os.path.exists(gray_imgs_path) else 0
 
         if interrupt & 0xFF == ord('a'):
             if flag:
@@ -208,19 +211,12 @@ while True:
             if suv==50:
                 flag=False
             if step%2==0:
-                # #this is for training data collection
-                # cv2.imwrite("D:\\sign2text_dataset_2.0\\Binary_imgs\\" + p_dir + "\\" + c_dir + str(count) + ".jpg", img_final)
-                # cv2.imwrite("D:\\sign2text_dataset_2.0\\Gray_imgs\\" + p_dir + "\\" + c_dir + str(count) + ".jpg", img_final1)
-                # cv2.imwrite("D:\\sign2text_dataset_2.0\\Gray_imgs_with_drawing\\" + p_dir + "\\" + c_dir + str(count) + ".jpg", img_final2)
-
-                # this is for testing data collection
-                # cv2.imwrite("D:\\test_data_2.0\\Binary_imgs\\" + p_dir + "\\" + c_dir + str(count) + ".jpg",
-                #             img_final)
-                cv2.imwrite("D:\\test_data_2.0\\Gray_imgs\\" + p_dir + "\\" + c_dir + str(count) + ".jpg",
-                            img_final1)
-                cv2.imwrite(
-                    "D:\\test_data_2.0\\Gray_imgs_with_drawing\\" + p_dir + "\\" + c_dir + str(count) + ".jpg",
-                    img_final2)
+                # Save to test data directory with relative paths
+                gray_path = os.path.join(TEST_DATA_ROOT, "Gray_imgs", p_dir, f"{c_dir}{count}.jpg")
+                gray_draw_path = os.path.join(TEST_DATA_ROOT, "Gray_imgs_with_drawing", p_dir, f"{c_dir}{count}.jpg")
+                
+                cv2.imwrite(gray_path, img_final1)
+                cv2.imwrite(gray_draw_path, img_final2)
 
                 count += 1
                 suv += 1
