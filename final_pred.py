@@ -333,13 +333,19 @@ class Application:
 
 
     def speak_fun(self):
-        import pyttsx3
-        speak_engine = pyttsx3.init()
-        speak_engine.setProperty("rate", 100)
-        voices = speak_engine.getProperty("voices")
-        speak_engine.setProperty("voice", voices[0].id)
-        speak_engine.say(self.str)
-        speak_engine.runAndWait()
+        import subprocess
+        import sys
+        tts_code = (
+            "import pyttsx3; "
+            "engine=pyttsx3.init(); "
+            "engine.setProperty('rate',100); "
+            "voices=engine.getProperty('voices'); "
+            "engine.setProperty('voice',voices[0].id); "
+            f"engine.say({repr(self.str)}); "
+            "engine.runAndWait(); "
+            "engine.stop()"
+        )
+        subprocess.Popen([sys.executable, "-c", tts_code])
 
 
     def clear_fun(self):
