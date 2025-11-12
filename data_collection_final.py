@@ -4,14 +4,24 @@ import numpy as np
 import os as oss
 import traceback
 
+# Configuration - Update these paths for your setup
+DATASET_ROOT = oss.path.join(oss.path.dirname(__file__), "AtoZ_3.1")
+WHITE_IMAGE_PATH = oss.path.join(oss.path.dirname(__file__), "white.jpg")
 
+# Create dataset directory if it doesn't exist
+if not oss.path.exists(DATASET_ROOT):
+    oss.makedirs(DATASET_ROOT)
+    for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+        oss.makedirs(oss.path.join(DATASET_ROOT, letter), exist_ok=True)
 
 capture = cv2.VideoCapture(0)
 hd = HandDetector(maxHands=1)
 hd2 = HandDetector(maxHands=1)
 
-count = len(oss.listdir("D:\\sign2text_dataset_3.0\\AtoZ_3.0\\A\\"))
+# Initialize count for first letter
 c_dir = 'A'
+first_letter_path = oss.path.join(DATASET_ROOT, c_dir)
+count = len(oss.listdir(first_letter_path)) if oss.path.exists(first_letter_path) else 0
 
 offset = 15
 step = 1
@@ -19,7 +29,7 @@ flag=False
 suv=0
 
 white=np.ones((400,400),np.uint8)*255
-cv2.imwrite("C:\\Users\\devansh raval\\PycharmProjects\\pythonProject\\white.jpg",white)
+cv2.imwrite(WHITE_IMAGE_PATH, white)
 
 
 while True:
@@ -27,7 +37,7 @@ while True:
         _, frame = capture.read()
         frame = cv2.flip(frame, 1)
         hands= hd.findHands(frame, draw=False, flipType=True)
-        white = cv2.imread("C:\\Users\\devansh raval\\PycharmProjects\\pythonProject\\white.jpg")
+        white = cv2.imread(WHITE_IMAGE_PATH)
 
         if hands:
             hand = hands[0]
@@ -81,7 +91,8 @@ while True:
             if ord(c_dir)==ord('Z')+1:
                 c_dir='A'
             flag = False
-            count = len(oss.listdir("D:\\sign2text_dataset_3.0\\AtoZ_3.0\\" + (c_dir) + "\\"))
+            letter_path = oss.path.join(DATASET_ROOT, c_dir)
+            count = len(oss.listdir(letter_path)) if oss.path.exists(letter_path) else 0
 
         if interrupt & 0xFF == ord('a'):
             if flag:
@@ -96,8 +107,8 @@ while True:
             if suv==180:
                 flag=False
             if step%3==0:
-                cv2.imwrite("D:\\sign2text_dataset_3.0\\AtoZ_3.1\\" + (c_dir) + "\\" + str(count) + ".jpg",
-                            skeleton1)
+                output_path = oss.path.join(DATASET_ROOT, c_dir, f"{count}.jpg")
+                cv2.imwrite(output_path, skeleton1)
 
                 count += 1
                 suv += 1
