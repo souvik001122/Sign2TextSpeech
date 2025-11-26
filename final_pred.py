@@ -28,6 +28,14 @@ os.environ["THEANO_FLAGS"] = "device=cuda, assert_no_cpu_op=True"
 # Application :
 
 class Application:
+    def preprocess_for_model(self, img):
+        """
+        Ensures the input image is resized to 400x400 and normalized for model prediction.
+        """
+        import cv2
+        img = cv2.resize(img, (400, 400))
+        img = img.astype('float32') / 255.0
+        return img
 
     def __init__(self):
         self.vs = cv2.VideoCapture(0)
@@ -220,74 +228,54 @@ class Application:
             self.panel.imgtk = imgtk
             self.panel.config(image=imgtk)
 
-            if hands:
-                # #print(" --------- lmlist=",hands[1])
+            if hands and isinstance(hands, list) and len(hands) > 0:
                 hand = hands[0]
-                x, y, w, h = hand['bbox']
-                image = cv2image_copy[y - offset:y + h + offset, x - offset:x + w + offset]
+                if isinstance(hand, dict) and 'bbox' in hand:
+                    x, y, w, h = hand['bbox']
+                    y1 = max(0, y - offset)
+                    y2 = min(cv2image_copy.shape[0], y + h + offset)
+                    x1 = max(0, x - offset)
+                    x2 = min(cv2image_copy.shape[1], x + w + offset)
+                    image = cv2image_copy[y1:y2, x1:x2]
 
-                white = cv2.imread(WHITE_IMAGE_PATH)
-                # img_final=img_final1=img_final2=0
+                    white = cv2.imread(WHITE_IMAGE_PATH)
+                    handz = hd2.findHands(image, draw=False, flipType=True)
+                    print(" ", self.ccc)
+                    self.ccc += 1
+                    if handz and isinstance(handz, list) and len(handz) > 0 and isinstance(handz[0], dict) and 'lmList' in handz[0]:
+                        self.pts = handz[0]['lmList']
+                        os = ((400 - w) // 2) - 15
+                        os1 = ((400 - h) // 2) - 15
+                        for t in range(0, 4, 1):
+                            cv2.line(white, (self.pts[t][0] + os, self.pts[t][1] + os1), (self.pts[t + 1][0] + os, self.pts[t + 1][1] + os1), (0, 255, 0), 3)
+                        for t in range(5, 8, 1):
+                            cv2.line(white, (self.pts[t][0] + os, self.pts[t][1] + os1), (self.pts[t + 1][0] + os, self.pts[t + 1][1] + os1), (0, 255, 0), 3)
+                        for t in range(9, 12, 1):
+                            cv2.line(white, (self.pts[t][0] + os, self.pts[t][1] + os1), (self.pts[t + 1][0] + os, self.pts[t + 1][1] + os1), (0, 255, 0), 3)
+                        for t in range(13, 16, 1):
+                            cv2.line(white, (self.pts[t][0] + os, self.pts[t][1] + os1), (self.pts[t + 1][0] + os, self.pts[t + 1][1] + os1), (0, 255, 0), 3)
+                        for t in range(17, 20, 1):
+                            cv2.line(white, (self.pts[t][0] + os, self.pts[t][1] + os1), (self.pts[t + 1][0] + os, self.pts[t + 1][1] + os1), (0, 255, 0), 3)
+                        cv2.line(white, (self.pts[5][0] + os, self.pts[5][1] + os1), (self.pts[9][0] + os, self.pts[9][1] + os1), (0, 255, 0), 3)
+                        cv2.line(white, (self.pts[9][0] + os, self.pts[9][1] + os1), (self.pts[13][0] + os, self.pts[13][1] + os1), (0, 255, 0), 3)
+                        cv2.line(white, (self.pts[13][0] + os, self.pts[13][1] + os1), (self.pts[17][0] + os, self.pts[17][1] + os1), (0, 255, 0), 3)
+                        cv2.line(white, (self.pts[0][0] + os, self.pts[0][1] + os1), (self.pts[5][0] + os, self.pts[5][1] + os1), (0, 255, 0), 3)
+                        cv2.line(white, (self.pts[0][0] + os, self.pts[0][1] + os1), (self.pts[17][0] + os, self.pts[17][1] + os1), (0, 255, 0), 3)
+                        for i in range(21):
+                            cv2.circle(white, (self.pts[i][0] + os, self.pts[i][1] + os1), 2, (0, 0, 255), 1)
 
-                handz = hd2.findHands(image, draw=False, flipType=True)
-                print(" ", self.ccc)
-                self.ccc += 1
-                if handz:
-                    hand = handz[0]
-                    self.pts = hand['lmList']
-                    # x1,y1,w1,h1=hand['bbox']
+                        res = white
+                        self.predict(res)
 
-                    os = ((400 - w) // 2) - 15
-                    os1 = ((400 - h) // 2) - 15
-                    for t in range(0, 4, 1):
-                        cv2.line(white, (self.pts[t][0] + os, self.pts[t][1] + os1), (self.pts[t + 1][0] + os, self.pts[t + 1][1] + os1),
-                                 (0, 255, 0), 3)
-                    for t in range(5, 8, 1):
-                        cv2.line(white, (self.pts[t][0] + os, self.pts[t][1] + os1), (self.pts[t + 1][0] + os, self.pts[t + 1][1] + os1),
-                                 (0, 255, 0), 3)
-                    for t in range(9, 12, 1):
-                        cv2.line(white, (self.pts[t][0] + os, self.pts[t][1] + os1), (self.pts[t + 1][0] + os, self.pts[t + 1][1] + os1),
-                                 (0, 255, 0), 3)
-                    for t in range(13, 16, 1):
-                        cv2.line(white, (self.pts[t][0] + os, self.pts[t][1] + os1), (self.pts[t + 1][0] + os, self.pts[t + 1][1] + os1),
-                                 (0, 255, 0), 3)
-                    for t in range(17, 20, 1):
-                        cv2.line(white, (self.pts[t][0] + os, self.pts[t][1] + os1), (self.pts[t + 1][0] + os, self.pts[t + 1][1] + os1),
-                                 (0, 255, 0), 3)
-                    cv2.line(white, (self.pts[5][0] + os, self.pts[5][1] + os1), (self.pts[9][0] + os, self.pts[9][1] + os1), (0, 255, 0),
-                             3)
-                    cv2.line(white, (self.pts[9][0] + os, self.pts[9][1] + os1), (self.pts[13][0] + os, self.pts[13][1] + os1), (0, 255, 0),
-                             3)
-                    cv2.line(white, (self.pts[13][0] + os, self.pts[13][1] + os1), (self.pts[17][0] + os, self.pts[17][1] + os1),
-                             (0, 255, 0), 3)
-                    cv2.line(white, (self.pts[0][0] + os, self.pts[0][1] + os1), (self.pts[5][0] + os, self.pts[5][1] + os1), (0, 255, 0),
-                             3)
-                    cv2.line(white, (self.pts[0][0] + os, self.pts[0][1] + os1), (self.pts[17][0] + os, self.pts[17][1] + os1), (0, 255, 0),
-                             3)
-
-                    for i in range(21):
-                        cv2.circle(white, (self.pts[i][0] + os, self.pts[i][1] + os1), 2, (0, 0, 255), 1)
-
-                    res=white
-                    self.predict(res)
-
-                    self.current_image2 = Image.fromarray(res)
-
-                    imgtk = ImageTk.PhotoImage(image=self.current_image2)
-
-                    self.panel2.imgtk = imgtk
-                    self.panel2.config(image=imgtk)
-
-                    self.panel3.config(text=self.current_symbol, font=("Courier", 30))
-
-                    #self.panel4.config(text=self.word, font=("Courier", 30))
-
-
-
-                    self.b1.config(text=self.word1, font=("Courier", 20), wraplength=825, command=self.action1)
-                    self.b2.config(text=self.word2, font=("Courier", 20), wraplength=825,  command=self.action2)
-                    self.b3.config(text=self.word3, font=("Courier", 20), wraplength=825,  command=self.action3)
-                    self.b4.config(text=self.word4, font=("Courier", 20), wraplength=825,  command=self.action4)
+                        self.current_image2 = Image.fromarray(res)
+                        imgtk = ImageTk.PhotoImage(image=self.current_image2)
+                        self.panel2.imgtk = imgtk
+                        self.panel2.config(image=imgtk)
+                        self.panel3.config(text=self.current_symbol, font=("Courier", 30))
+                        self.b1.config(text=self.word1, font=("Courier", 20), wraplength=825, command=self.action1)
+                        self.b2.config(text=self.word2, font=("Courier", 20), wraplength=825,  command=self.action2)
+                        self.b3.config(text=self.word3, font=("Courier", 20), wraplength=825,  command=self.action3)
+                        self.b4.config(text=self.word4, font=("Courier", 20), wraplength=825,  command=self.action4)
 
             self.panel5.config(text=self.str, font=("Courier", 30), wraplength=1025)
         except Exception:
@@ -356,7 +344,8 @@ class Application:
         self.word4 = " "
 
     def predict(self, test_image):
-        white=test_image
+        # Robust preprocessing: ensure input is 400x400x3 and normalized
+        white = self.preprocess_for_model(test_image)
         white = white.reshape(1, 400, 400, 3)
         prob = np.array(self.model.predict(white)[0], dtype='float32')
         ch1 = np.argmax(prob, axis=0)
@@ -382,85 +371,68 @@ class Application:
         if pl in l:
             if (self.pts[5][0] < self.pts[4][0]):
                 ch1 = 0
-                print("++++++++++++++++++")
-                # print("00000")
+                if cv2image.any:
+                    hands = hd.findHands(cv2image, draw=False, flipType=True)
+                    cv2image_copy = np.array(cv2image)
+                    cv2image = cv2.cvtColor(cv2image, cv2.COLOR_BGR2RGB)
+                    self.current_image = Image.fromarray(cv2image)
+                    imgtk = ImageTk.PhotoImage(image=self.current_image)
+                    self.panel.imgtk = imgtk
+                    self.panel.config(image=imgtk)
 
-        # condition for [c0][aemnst]
-        l = [[0, 0], [0, 6], [0, 2], [0, 5], [0, 1], [0, 7], [5, 2], [7, 6], [7, 1]]
-        pl = [ch1, ch2]
-        if pl in l:
-            if (self.pts[0][0] > self.pts[8][0] and self.pts[0][0] > self.pts[4][0] and self.pts[0][0] > self.pts[12][0] and self.pts[0][0] > self.pts[16][
-                0] and self.pts[0][0] > self.pts[20][0]) and self.pts[5][0] > self.pts[4][0]:
-                ch1 = 2
+                    # Robust hand bbox extraction
+                    hand = None
+                    if hands and isinstance(hands, list) and len(hands) > 0:
+                        if isinstance(hands[0], dict) and 'bbox' in hands[0]:
+                            hand = hands[0]
+                    if hand:
+                        x, y, w, h = hand['bbox']
+                        y1 = max(0, y - offset)
+                        y2 = min(cv2image_copy.shape[0], y + h + offset)
+                        x1 = max(0, x - offset)
+                        x2 = min(cv2image_copy.shape[1], x + w + offset)
+                        image = cv2image_copy[y1:y2, x1:x2]
 
-        # condition for [c0][aemnst]
-        l = [[6, 0], [6, 6], [6, 2]]
-        pl = [ch1, ch2]
-        if pl in l:
-            if self.distance(self.pts[8], self.pts[16]) < 52:
-                ch1 = 2
+                        white = cv2.imread(WHITE_IMAGE_PATH)
+                        if image.size > 0:
+                            handz = hd2.findHands(image, draw=False, flipType=True)
+                            self.ccc += 1
+                            if handz and isinstance(handz, list) and len(handz) > 0 and isinstance(handz[0], dict) and 'lmList' in handz[0]:
+                                self.pts = handz[0]['lmList']
+                                os = ((400 - w) // 2) - 15
+                                os1 = ((400 - h) // 2) - 15
+                                for t in range(0, 4, 1):
+                                    cv2.line(white, (self.pts[t][0] + os, self.pts[t][1] + os1), (self.pts[t + 1][0] + os, self.pts[t + 1][1] + os1), (0, 255, 0), 3)
+                                for t in range(5, 8, 1):
+                                    cv2.line(white, (self.pts[t][0] + os, self.pts[t][1] + os1), (self.pts[t + 1][0] + os, self.pts[t + 1][1] + os1), (0, 255, 0), 3)
+                                for t in range(9, 12, 1):
+                                    cv2.line(white, (self.pts[t][0] + os, self.pts[t][1] + os1), (self.pts[t + 1][0] + os, self.pts[t + 1][1] + os1), (0, 255, 0), 3)
+                                for t in range(13, 16, 1):
+                                    cv2.line(white, (self.pts[t][0] + os, self.pts[t][1] + os1), (self.pts[t + 1][0] + os, self.pts[t + 1][1] + os1), (0, 255, 0), 3)
+                                for t in range(17, 20, 1):
+                                    cv2.line(white, (self.pts[t][0] + os, self.pts[t][1] + os1), (self.pts[t + 1][0] + os, self.pts[t + 1][1] + os1), (0, 255, 0), 3)
+                                cv2.line(white, (self.pts[5][0] + os, self.pts[5][1] + os1), (self.pts[9][0] + os, self.pts[9][1] + os1), (0, 255, 0), 3)
+                                cv2.line(white, (self.pts[9][0] + os, self.pts[9][1] + os1), (self.pts[13][0] + os, self.pts[13][1] + os1), (0, 255, 0), 3)
+                                cv2.line(white, (self.pts[13][0] + os, self.pts[13][1] + os1), (self.pts[17][0] + os, self.pts[17][1] + os1), (0, 255, 0), 3)
+                                cv2.line(white, (self.pts[0][0] + os, self.pts[0][1] + os1), (self.pts[5][0] + os, self.pts[5][1] + os1), (0, 255, 0), 3)
+                                cv2.line(white, (self.pts[0][0] + os, self.pts[0][1] + os1), (self.pts[17][0] + os, self.pts[17][1] + os1), (0, 255, 0), 3)
+                                for i in range(21):
+                                    cv2.circle(white, (self.pts[i][0] + os, self.pts[i][1] + os1), 2, (0, 0, 255), 1)
 
+                                res = white
+                                self.predict(res)
 
-        # condition for [gh][bdfikruvw]
-        l = [[1, 4], [1, 5], [1, 6], [1, 3], [1, 0]]
-        pl = [ch1, ch2]
+                                self.current_image2 = Image.fromarray(res)
+                                imgtk = ImageTk.PhotoImage(image=self.current_image2)
+                                self.panel2.imgtk = imgtk
+                                self.panel2.config(image=imgtk)
+                                self.panel3.config(text=self.current_symbol, font=("Courier", 30))
+                                self.b1.config(text=self.word1, font=("Courier", 20), wraplength=825, command=self.action1)
+                                self.b2.config(text=self.word2, font=("Courier", 20), wraplength=825,  command=self.action2)
+                                self.b3.config(text=self.word3, font=("Courier", 20), wraplength=825,  command=self.action3)
+                                self.b4.config(text=self.word4, font=("Courier", 20), wraplength=825,  command=self.action4)
 
-        if pl in l:
-            if self.pts[6][1] > self.pts[8][1] and self.pts[14][1] < self.pts[16][1] and self.pts[18][1] < self.pts[20][1] and self.pts[0][0] < self.pts[8][
-                0] and self.pts[0][0] < self.pts[12][0] and self.pts[0][0] < self.pts[16][0] and self.pts[0][0] < self.pts[20][0]:
-                ch1 = 3
-
-
-
-        # con for [gh][l]
-        l = [[4, 6], [4, 1], [4, 5], [4, 3], [4, 7]]
-        pl = [ch1, ch2]
-        if pl in l:
-            if self.pts[4][0] > self.pts[0][0]:
-                ch1 = 3
-
-        # con for [gh][pqz]
-        l = [[5, 3], [5, 0], [5, 7], [5, 4], [5, 2], [5, 1], [5, 5]]
-        pl = [ch1, ch2]
-        if pl in l:
-            if self.pts[2][1] + 15 < self.pts[16][1]:
-                ch1 = 3
-
-        # con for [l][x]
-        l = [[6, 4], [6, 1], [6, 2]]
-        pl = [ch1, ch2]
-        if pl in l:
-            if self.distance(self.pts[4], self.pts[11]) > 55:
-                ch1 = 4
-
-        # con for [l][d]
-        l = [[1, 4], [1, 6], [1, 1]]
-        pl = [ch1, ch2]
-        if pl in l:
-            if (self.distance(self.pts[4], self.pts[11]) > 50) and (
-                    self.pts[6][1] > self.pts[8][1] and self.pts[10][1] < self.pts[12][1] and self.pts[14][1] < self.pts[16][1] and self.pts[18][1] <
-                    self.pts[20][1]):
-                ch1 = 4
-
-        # con for [l][gh]
-        l = [[3, 6], [3, 4]]
-        pl = [ch1, ch2]
-        if pl in l:
-            if (self.pts[4][0] < self.pts[0][0]):
-                ch1 = 4
-
-        # con for [l][c0]
-        l = [[2, 2], [2, 5], [2, 4]]
-        pl = [ch1, ch2]
-        if pl in l:
-            if (self.pts[1][0] < self.pts[12][0]):
-                ch1 = 4
-
-        # con for [l][c0]
-        l = [[2, 2], [2, 5], [2, 4]]
-        pl = [ch1, ch2]
-        if pl in l:
-            if (self.pts[1][0] < self.pts[12][0]):
+                    self.panel5.config(text=self.str, font=("Courier", 30), wraplength=1025)
                 ch1 = 4
 
         # con for [gh][z]
